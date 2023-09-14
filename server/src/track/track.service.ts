@@ -20,8 +20,8 @@ export class TrackService{
         return await this.trackModel.create({...dto, listens: 0, picture: picturePath, audio: audioPath});
     }
 
-    async getAll(): Promise<Track[]>{
-        const tracks = await this.trackModel.find();
+    async getAll(count: number, offset: number): Promise<Track[]>{
+        const tracks = await this.trackModel.find().skip(offset).limit(count);
         return tracks
 
     }
@@ -30,7 +30,6 @@ export class TrackService{
         const track = await this.trackModel.findById(id).populate('comments');
         return track;
     }
-
 
     async delete(id: ObjectId){
         const track = await this.trackModel.findByIdAndDelete(id);
@@ -43,5 +42,20 @@ export class TrackService{
         track.comments.push(comment)
         await track.save();
         return comment;
+    }
+
+    async listen(id: ObjectId) {
+        const track = await this.trackModel.findById(id);
+        track.listens += 1;
+        track.save();
+    }
+
+    async search(query: string): Promise<Track[]> {
+        console.log(query)
+        const tracks = await this.trackModel.find({
+            name: {$regex: new RegExp(query, 'i')}
+        })
+        console.log(tracks)
+        return tracks;
     }
 }
